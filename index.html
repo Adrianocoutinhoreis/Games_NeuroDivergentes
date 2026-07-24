@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FGI | Jogos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Home dos jogos (versão de apresentação, sem login) -->
+    <div id="app"></div>
+
+    <!-- Camada para jogar sem sair da tela de jogos -->
+    <div id="play-overlay" class="play-overlay" hidden>
+        <div class="play-topbar">
+            <button id="play-back" class="play-back" type="button">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Voltar aos jogos
+            </button>
+            <span id="play-title" class="play-title"></span>
+        </div>
+        <iframe id="play-frame" class="play-frame" title="Jogo" src="about:blank"></iframe>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

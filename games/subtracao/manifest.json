@@ -1,0 +1,33 @@
+{
+  "id": "subtracao",
+  "nomeJogo": "Jogo da Subtração",
+  "descricao": "Aprenda a subtrair contando quantos desenhos sobraram e arrastando o número certo.",
+  "disciplina": "matematica",
+  "tipo": "aritmetica",
+  "subtipo": "subtracao",
+  "icone": "➖",
+  "mascote": "🦉",
+  "corTema": "#7a6ab0",
+
+  "nivelDificuldade": ["facil", "medio", "dificil"],
+  "nivelMinimo": 1,
+  "nivelMaximo": 3,
+
+  "perfilCompativel": ["tipico", "tea_1", "tea_2", "tea_3", "tdah", "dislexia"],
+  "requisitosPrevios": [],
+  "habilidades": ["contagem", "subtracao", "raciocinio-logico"],
+
+  "tempoEstimado": {
+    "facil": "5 min",
+    "medio": "8 min",
+    "dificil": "12 min"
+  },
+
+  "totalPerguntas": 8,
+  "interacao": "drag-and-drop",
+  "fallbackTeclado": true,
+  "sonsProcedurais": true,
+
+  "versao": "1.0.0",
+  "autor": "FGI"
+}

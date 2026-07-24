@@ -1,0 +1,845 @@
+/* ============================================================
+   Jogo da Soma — design pensado para o público TEA
+   - Cores pastéis presentes, porém suaves (sem tons estridentes)
+   - Sem animações bruscas, piscantes ou rápidas
+   - Layout previsível e com poucos elementos por tela
+   - Fontes grandes, arredondadas e legíveis
+   - Interação por arrastar e soltar, com alvo grande e claro
+   - O mascote acompanha a criança e dá o feedback por um balão
+   ============================================================ */
+
+:root {
+    /* Fundo com dois tons calmos (gradiente bem sutil) */
+    --cor-fundo-1: #ddefe6;
+    --cor-fundo-2: #d9e7f6;
+
+    --cor-cartao: #fffdf9;          /* branco levemente quente */
+    --cor-texto: #3a4a52;
+    --cor-texto-suave: #64757e;
+
+    /* Verde principal */
+    --cor-primaria: #55a08a;
+    --cor-primaria-escura: #3f8672;
+    --cor-primaria-clara: #dff0e8;
+
+    /* Azul */
+    --cor-azul: #7fa8d9;
+    --cor-azul-escuro: #4f7cb3;
+    --cor-azul-claro: #e1ecfa;
+
+    /* Lavanda */
+    --cor-lavanda: #a99bd1;
+    --cor-lavanda-escura: #7a6ab0;
+    --cor-lavanda-clara: #ece7f8;
+
+    /* Pêssego (usado no apoio ao erro — acolhedor, nunca vermelho) */
+    --cor-pessego: #e8b986;
+    --cor-pessego-escuro: #b07f42;
+    --cor-pessego-claro: #fdeeda;
+
+    /* Amarelo suave (detalhes) */
+    --cor-amarelo-claro: #faf0d7;
+
+    --cor-acerto-fundo: #e0f2e7;
+    --cor-acerto-borda: #7dbd94;
+
+    --cor-borda: #d8e2dd;
+    --sombra: 0 4px 14px rgba(58, 74, 82, 0.10);
+    --raio: 20px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Fonte-raiz fluida: como quase todas as medidas usam rem, o jogo
+   inteiro encolhe proporcionalmente em telas mais baixas e cabe
+   sem precisar de barra de rolagem */
+html {
+    font-size: clamp(13px, 2.05vh, 18px);
+    scrollbar-width: none; /* rede de segurança: se rolar, sem barra visível */
+}
+
+body {
+    -ms-overflow-style: none;
+}
+
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+body {
+    font-family: "Segoe UI", "Trebuchet MS", Verdana, sans-serif;
+    background: linear-gradient(160deg, var(--cor-fundo-1) 0%, var(--cor-fundo-2) 100%);
+    background-attachment: fixed;
+    color: var(--cor-texto);
+    min-height: 100vh;
+    min-height: 100dvh; /* considera a barra de endereço dos navegadores móveis */
+    line-height: 1.5;
+}
+
+button {
+    touch-action: manipulation;           /* evita zoom por toque duplo no celular */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Telas ---------- */
+
+.tela {
+    display: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.tela.ativa {
+    display: flex;
+}
+
+/* O cartão surge devagar ao trocar de tela: marca a mudança de
+   contexto sem sobressalto */
+.tela.ativa .cartao {
+    animation: entrar-suave 0.6s ease both;
+}
+
+@keyframes entrar-suave {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.cartao {
+    background-color: var(--cor-cartao);
+    border-radius: var(--raio);
+    border-top: 8px solid var(--cor-primaria);
+    box-shadow: var(--sombra);
+    padding: 2rem;
+    width: 100%;
+    max-width: 640px;
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.8rem;
+    color: var(--cor-primaria-escura);
+    margin-bottom: 0.5rem;
+}
+
+.subtitulo {
+    color: var(--cor-texto-suave);
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+/* ---------- Barra superior (pílula com o progresso) ---------- */
+
+.barra-topo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 1000px;
+    margin-bottom: 1.2rem;
+    padding: 0.9rem 2rem;
+    background-color: var(--cor-cartao);
+    border-radius: 999px;
+    box-shadow: var(--sombra);
+}
+
+.progresso {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.ponto {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #c3d4cd;
+    transition: background-color 0.4s ease;
+}
+
+.ponto.feito {
+    background-color: var(--cor-primaria);
+}
+
+/* Só a bolinha recém-conquistada dá um pulso único e discreto */
+.ponto.recem-feito {
+    animation: confirmar 0.6s ease;
+}
+
+@keyframes confirmar {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.35); }
+    100% { transform: scale(1); }
+}
+
+.ponto.atual {
+    background-color: var(--cor-azul);
+}
+
+/* ---------- Tela do jogo (maior, com mascote lateral) ---------- */
+
+.cartao-jogo {
+    position: relative;         /* âncora do mascote no canto */
+    max-width: 1000px;
+    min-height: 30rem;          /* espaço para o mascote no canto inferior direito */
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+    padding: 2.4rem;
+}
+
+/* ---------- Área visual (desenhos a contar) ---------- */
+
+.area-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    background-color: var(--cor-primaria-clara);
+    border-radius: var(--raio);
+    padding: 1.2rem;
+}
+
+.grupo-itens {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    gap: 0.4rem;
+    justify-content: center;
+    background-color: var(--cor-cartao);
+    border: 2px solid var(--cor-primaria);
+    border-radius: var(--raio);
+    padding: 0.9rem;
+    min-width: 5.5rem;
+    min-height: 3.6rem;
+}
+
+.item-visual {
+    font-size: 2rem;
+    line-height: 1;
+    animation: aparecer 0.5s ease both;
+}
+
+.sinal {
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: var(--cor-primaria-escura);
+}
+
+/* ---------- Área de resposta: conta + mascote ---------- */
+
+/* Os números ficam centrados; o mascote fica fora do fluxo, no canto
+   inferior direito (posicionado mais abaixo). Uma folga à direita evita
+   que a conta encoste no mascote em telas largas. */
+.area-resposta {
+    display: flex;
+    justify-content: center;
+    padding-right: 3rem;
+}
+
+.coluna-conta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* ---------- Conta em números ---------- */
+
+.conta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.numero {
+    font-size: 3rem;
+    font-weight: 700;
+    background-color: var(--cor-azul-claro);
+    border: 2px solid var(--cor-azul);
+    border-radius: 16px;
+    padding: 0.3rem 1.1rem;
+    min-width: 4.2rem;
+}
+
+/* O quadradinho da resposta: alvo do arrastar e soltar */
+.interrogacao {
+    background-color: var(--cor-pessego-claro);
+    border: 3px dashed var(--cor-pessego);
+    color: var(--cor-texto-suave);
+    min-width: 5.6rem;
+    min-height: 4.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Quando a ficha está em cima do alvo: convite claro para soltar */
+.interrogacao.pronta {
+    background-color: var(--cor-acerto-fundo);
+    border: 3px solid var(--cor-acerto-borda);
+    color: var(--cor-primaria-escura);
+}
+
+.interrogacao.respondida {
+    background-color: var(--cor-acerto-fundo);
+    border: 3px solid var(--cor-acerto-borda);
+    color: var(--cor-primaria-escura);
+    /* O número "encaixa" com um crescer-e-voltar único e suave */
+    animation: encaixar 0.5s ease;
+}
+
+@keyframes encaixar {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+.operador {
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: var(--cor-lavanda-escura);
+}
+
+/* ---------- Fichas de resposta (arrastáveis) ---------- */
+
+.opcoes {
+    display: flex;
+    justify-content: center;
+    gap: 1.1rem;
+    flex-wrap: wrap;
+}
+
+.botao-opcao {
+    font-family: inherit;
+    font-size: 2.1rem;
+    font-weight: 700;
+    width: 5.4rem;
+    height: 5.4rem;
+    border-radius: var(--raio);
+    color: var(--cor-texto);
+    cursor: grab;
+    touch-action: none; /* necessário para arrastar com o dedo */
+    transition: box-shadow 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 3px 0 rgba(58, 74, 82, 0.15);
+}
+
+/* A ficha "levanta" de leve, convidando a pegar */
+.botao-opcao:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 8px rgba(58, 74, 82, 0.18);
+}
+
+/* Cada ficha tem uma cor suave própria (nenhuma indica "certo" ou "errado") */
+.botao-opcao.ficha-1 {
+    background-color: var(--cor-azul-claro);
+    border: 3px solid var(--cor-azul);
+}
+
+.botao-opcao.ficha-2 {
+    background-color: var(--cor-lavanda-clara);
+    border: 3px solid var(--cor-lavanda);
+}
+
+.botao-opcao.ficha-3 {
+    background-color: var(--cor-amarelo-claro);
+    border: 3px solid var(--cor-pessego);
+}
+
+.botao-opcao:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(127, 168, 217, 0.45);
+}
+
+.botao-opcao:disabled {
+    cursor: default;
+    opacity: 0.4;
+    box-shadow: none;
+}
+
+/* Ficha correta encaixada */
+.botao-opcao.correta {
+    background-color: var(--cor-acerto-fundo);
+    border-color: var(--cor-acerto-borda);
+    color: var(--cor-primaria-escura);
+    opacity: 1;
+}
+
+/* Ficha que não era a resposta: fica pálida, sem cor de "erro" */
+.botao-opcao.tentar-novamente {
+    background-color: var(--cor-pessego-claro);
+    border-color: var(--cor-pessego);
+}
+
+/* Enquanto a ficha original está sendo arrastada */
+.botao-opcao.origem-arrasto {
+    opacity: 0.3;
+    cursor: grabbing;
+}
+
+/* Cópia da ficha que segue o dedo ou o mouse — levemente maior,
+   como um objeto que foi "pego" */
+.fantasma {
+    position: fixed;
+    margin: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.95;
+    cursor: grabbing;
+    transform: scale(1.06);
+    box-shadow: 0 8px 18px rgba(58, 74, 82, 0.25);
+}
+
+/* Retorno suave ao lugar quando solta fora do alvo */
+.fantasma.voltando {
+    transition: left 0.3s ease, top 0.3s ease;
+}
+
+/* ---------- Mascote + balão de diálogo ---------- */
+
+/* Mascote ancorado no canto inferior direito do cartão; o balão fica
+   logo acima dele. Fora do fluxo, para os números ficarem centrados. */
+.mascote-area {
+    position: absolute;
+    right: 1.5rem;
+    bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    width: 16rem;
+}
+
+/* O balão carrega a instrução e todo o feedback (acerto/apoio).
+   É o canal de fala do mascote — é ele que "conversa" com a criança.
+   Tamanho fixo (largura + altura mínima, texto centralizado) para não
+   mudar de tamanho quando a frase troca. */
+.balao-mascote {
+    position: relative;
+    width: 100%;
+    min-height: 4.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--cor-cartao);
+    border: 3px solid var(--cor-primaria);
+    border-radius: 16px;
+    padding: 0.6rem 0.9rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--cor-primaria-escura);
+    box-shadow: var(--sombra);
+    text-align: center;
+}
+
+/* Rabinho do balão apontando para o mascote (embaixo) —
+   dois triângulos: borda (::after) e preenchimento (::before) */
+.balao-mascote::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -13px;
+    transform: translateX(-50%);
+    border-width: 13px 11px 0 11px;
+    border-style: solid;
+    border-color: var(--cor-primaria) transparent transparent transparent;
+}
+
+.balao-mascote::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    transform: translateX(-50%);
+    border-width: 10px 8px 0 8px;
+    border-style: solid;
+    border-color: var(--cor-cartao) transparent transparent transparent;
+    z-index: 1;
+}
+
+.balao-mascote.acerto {
+    background-color: var(--cor-acerto-fundo);
+    border-color: var(--cor-acerto-borda);
+    color: var(--cor-primaria-escura);
+    animation: surgir 0.45s ease;
+}
+
+.balao-mascote.acerto::after { border-top-color: var(--cor-acerto-borda); }
+.balao-mascote.acerto::before { border-top-color: var(--cor-acerto-fundo); }
+
+.balao-mascote.apoio {
+    background-color: var(--cor-pessego-claro);
+    border-color: var(--cor-pessego);
+    color: var(--cor-pessego-escuro);
+    animation: surgir 0.45s ease;
+}
+
+.balao-mascote.apoio::after { border-top-color: var(--cor-pessego); }
+.balao-mascote.apoio::before { border-top-color: var(--cor-pessego-claro); }
+
+@keyframes surgir {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.mascote-img {
+    width: 100%;
+    max-width: 14rem;
+    height: auto;
+    display: block;
+}
+
+/* ---------- Botões principais ---------- */
+
+.botao-principal {
+    font-family: inherit;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 0.9rem 2.2rem;
+    background-color: var(--cor-primaria);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--raio);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.botao-principal:hover,
+.botao-principal:focus-visible {
+    background-color: var(--cor-primaria-escura);
+    outline: none;
+}
+
+.botao-principal:focus-visible {
+    box-shadow: 0 0 0 3px rgba(85, 160, 138, 0.4);
+}
+
+/* O botão "Próxima" mantém seu espaço reservado mesmo invisível:
+   nada se move na tela quando ele aparece (previsibilidade).
+   Ele aparece e some num fade suave. */
+.escondido {
+    visibility: hidden;
+    opacity: 0;
+}
+
+#botao-proxima {
+    transition: opacity 0.5s ease, visibility 0.5s, background-color 0.3s ease;
+}
+
+/* ---------- Tela final ---------- */
+
+.mascote-img-final {
+    max-width: 8rem;
+    margin: 0 auto 1.5rem;
+    animation: aparecer 0.6s ease both;
+}
+
+.estrelas-finais {
+    font-size: 2.2rem;
+    margin: 1.75rem 0 2.25rem;
+    letter-spacing: 0.3rem;
+    line-height: 1.6;
+}
+
+/* As estrelas da tela final aparecem uma a uma, num ritmo calmo */
+.estrela-final {
+    display: inline-block;
+    animation: aparecer 0.6s ease both;
+}
+
+.botoes-finais {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@keyframes aparecer {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Respeita a preferência do usuário por menos movimento */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ============================================================
+   Adaptações aplicadas pelo FGI Engine, conforme o perfil do aluno.
+   Mesmo vocabulário de atributos usado em shared/css/student.css,
+   mas com valores próprios deste jogo (isolado por arquitetura).
+   ============================================================ */
+
+:root[data-tamanho-fonte='grande'] {
+    font-size: clamp(15px, 2.3vh, 20px);
+}
+
+:root[data-tamanho-fonte='extra-grande'] {
+    font-size: clamp(17px, 2.6vh, 23px);
+}
+
+:root[data-contraste='alto'] body {
+    background: #ffffff;
+    color: #000000;
+}
+
+:root[data-contraste='alto'] .cartao,
+:root[data-contraste='alto'] .balao-mascote {
+    border: 3px solid #000000;
+    box-shadow: none;
+}
+
+:root[data-contraste='alto'] .numero,
+:root[data-contraste='alto'] .grupo-itens {
+    border-width: 3px;
+}
+
+:root[data-contraste='suave'] body {
+    background: linear-gradient(160deg, #eef6f2 0%, #eef3fa 100%);
+}
+
+:root.fonte-acessivel body {
+    font-family: Verdana, Tahoma, Arial, sans-serif;
+    letter-spacing: 0.02em;
+}
+
+/* O mascote é o canal de feedback (fala pelo balão), então continua
+   visível em todos os perfis — inclusive interface simplificada. */
+
+:root[data-estimulos-reduzidos='true'] .cartao {
+    box-shadow: none;
+}
+
+:root[data-animacoes='nenhuma'] * {
+    animation: none !important;
+    transition: none !important;
+}
+
+:root[data-animacoes='reduzidas'] * {
+    animation-duration: 0.15s !important;
+    transition-duration: 0.15s !important;
+}
+
+/* ============================================================
+   Tema de cor (configuracoes.visual.corFundo, escolhido pelo professor).
+   Reatribui o par fundo + cor principal para uma paleta já usada em
+   outro lugar do jogo, mantendo tudo coerente. Nunca sobrepõe o alto
+   contraste (acessibilidade tem prioridade), mas sobrepõe o contraste
+   "suave" quando o professor escolhe um tema explícito.
+   ============================================================ */
+
+:root[data-tema-fundo='azul'] {
+    --cor-fundo-1: #e1ecfa;
+    --cor-fundo-2: #eef3fa;
+    --cor-primaria: var(--cor-azul);
+    --cor-primaria-escura: var(--cor-azul-escuro);
+    --cor-primaria-clara: var(--cor-azul-claro);
+}
+
+:root[data-tema-fundo='lavanda'] {
+    --cor-fundo-1: #ece7f8;
+    --cor-fundo-2: #eef3fa;
+    --cor-primaria: var(--cor-lavanda);
+    --cor-primaria-escura: var(--cor-lavanda-escura);
+    --cor-primaria-clara: var(--cor-lavanda-clara);
+}
+
+:root[data-tema-fundo='pessego'] {
+    --cor-fundo-1: #fdeeda;
+    --cor-fundo-2: #fbf3e6;
+    --cor-primaria: var(--cor-pessego);
+    --cor-primaria-escura: var(--cor-pessego-escuro);
+    --cor-primaria-clara: var(--cor-pessego-claro);
+}
+
+:root[data-tema-fundo='amarelo'] {
+    --cor-fundo-1: #faf0d7;
+    --cor-fundo-2: #fbf6e6;
+    --cor-primaria: #d9a635;
+    --cor-primaria-escura: #a97b1e;
+    --cor-primaria-clara: var(--cor-amarelo-claro);
+}
+
+:root[data-contraste='suave'][data-tema-fundo] body {
+    background: linear-gradient(160deg, var(--cor-fundo-1) 0%, var(--cor-fundo-2) 100%);
+}
+
+/* ============================================================
+   Responsividade — tablets e celulares
+   Mantém os mesmos elementos nas mesmas posições (previsibilidade),
+   apenas ajustando tamanhos e espaçamentos.
+   ============================================================ */
+
+/* A partir daqui o cartão estreita e o mascote sai do canto: volta ao
+   fluxo, empilhado abaixo da conta e centralizado (sem sobrepor nada). */
+@media (max-width: 900px) {
+    .cartao-jogo {
+        max-width: 640px;
+        min-height: 0;
+        padding: 1.8rem;
+    }
+
+    .barra-topo {
+        max-width: 640px;
+    }
+
+    .area-resposta {
+        flex-direction: column;
+        align-items: center;
+        padding-right: 0;
+        gap: 1.8rem;
+    }
+
+    .mascote-area {
+        position: static;
+        width: 100%;
+        max-width: 18rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .mascote-area {
+        max-width: 14rem;
+    }
+
+    .mascote-img {
+        max-width: 12rem;
+    }
+}
+
+@media (max-width: 600px) {
+    html {
+        font-size: clamp(12px, 2vh, 16px);
+    }
+
+    .tela {
+        padding: 0.8rem;
+        justify-content: flex-start;
+        padding-top: 1rem;
+    }
+
+    .cartao {
+        padding: 1.2rem 1rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .area-visual {
+        gap: 0.6rem;
+        padding: 0.8rem;
+    }
+
+    .grupo-itens {
+        padding: 0.6rem;
+        min-width: 70px;
+        min-height: 50px;
+        gap: 0.25rem;
+    }
+
+    .item-visual {
+        font-size: 1.5rem;
+    }
+
+    .sinal {
+        font-size: 2rem;
+    }
+
+    .conta {
+        gap: 0.5rem;
+    }
+
+    .numero {
+        font-size: 2rem;
+        min-width: 3.4rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .interrogacao {
+        min-width: 4.75rem;
+        min-height: 4rem;
+    }
+
+    .operador {
+        font-size: 1.8rem;
+    }
+
+    .opcoes {
+        gap: 0.8rem;
+    }
+
+    /* Fichas continuam grandes o bastante para o toque (mínimo 44px) */
+    .botao-opcao {
+        width: 5rem;
+        height: 5rem;
+        font-size: 1.8rem;
+    }
+
+    .botao-principal {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .ponto {
+        width: 13px;
+        height: 13px;
+    }
+
+    .estrelas-finais {
+        font-size: 1.7rem;
+        letter-spacing: 0.15rem;
+    }
+
+    .balao-mascote {
+        font-size: 1.05rem;
+    }
+}
+
+@media (max-width: 370px) {
+    .numero {
+        font-size: 1.7rem;
+        min-width: 2.9rem;
+        padding: 0.2rem 0.5rem;
+    }
+
+    .interrogacao {
+        min-width: 4rem;
+        min-height: 3.5rem;
+    }
+
+    .operador {
+        font-size: 1.5rem;
+    }
+
+    .botao-opcao {
+        width: 4.5rem;
+        height: 4.5rem;
+        font-size: 1.6rem;
+    }
+
+    .conta {
+        gap: 0.4rem;
+    }
+}

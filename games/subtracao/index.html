@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Subtração</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ===================== TELA DO JOGO =====================
+         O jogo abre direto nesta tela. O nível de dificuldade vem
+         das configurações do professor (cognitivo.nivelJogo), não é
+         mais escolhido aqui. -->
+    <section id="tela-jogo" class="tela ativa">
+        <div class="barra-topo">
+            <div id="progresso" class="progresso" aria-label="Progresso da atividade"></div>
+        </div>
+
+        <main class="cartao cartao-jogo">
+            <!-- Modelo "tirar": todos os desenhos aparecem e os que
+                 foram guardados ficam apagadinhos. A criança conta os
+                 que sobraram. -->
+            <div class="area-visual" aria-hidden="true">
+                <div id="grupo-itens" class="grupo-itens"></div>
+            </div>
+
+            <div class="area-resposta">
+                <div class="coluna-conta">
+                    <div class="conta" id="conta-texto">
+                        <span id="numero-a" class="numero">5</span>
+                        <span class="operador">−</span>
+                        <span id="numero-b" class="numero">2</span>
+                        <span class="operador">=</span>
+                        <span id="interrogacao" class="numero interrogacao">?</span>
+                    </div>
+
+                    <div id="opcoes" class="opcoes"></div>
+
+                    <button id="botao-proxima" class="botao-principal escondido">
+                        Próxima <span aria-hidden="true">→</span>
+                    </button>
+                </div>
+
+                <aside class="mascote-area">
+                    <div id="balao" class="balao-mascote" role="status" aria-live="polite">Conte os desenhos que sobraram e arraste a resposta certa.</div>
+                    <img class="mascote-img" src="../assets/mascote/mascote_subtracao.png" alt="" aria-hidden="true" />
+                </aside>
+            </div>
+        </main>
+    </section>
+
+    <!-- ===================== TELA FINAL ===================== -->
+    <section id="tela-final" class="tela">
+        <div class="cartao cartao-final">
+            <img class="mascote-img mascote-img-final" src="../assets/mascote/mascote_subtracao.png" alt="" aria-hidden="true" />
+            <h2>Você terminou!</h2>
+            <p id="resumo-final" class="subtitulo">Muito bem! Você completou todas as contas.</p>
+            <div id="estrelas-finais" class="estrelas-finais" aria-hidden="true"></div>
+            <div class="botoes-finais">
+                <button id="botao-jogar-novamente" class="botao-principal">Jogar de novo</button>
+            </div>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
